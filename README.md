@@ -26,8 +26,8 @@ Similar to above, if **the branch exists** but `update-branch` **is** `true`, th
 
 If the argument is the `HEAD` keyword, `update-branch` is implied `true` and the generated documentation will be committed to the current branch. The action will fail if no `directory` input is specified.
 
-**Default:** `retype`
-**Accepts:** A string or the `HEAD` keyword. (`gh-pages`, `main`, `website`, `HEAD`)
+- **Default:** `retype`
+- **Accepts:** A string or the `HEAD` keyword. (`gh-pages`, `main`, `website`, `HEAD`)
 
 **Note:** When wiping a branch or directory, if there is a **CNAME** file in the top-level location it is handling, the file will be preserved. This is useful when you have a GitHub Pages enabled repository and use a custom host redirection in it. In case Retype output has the file, it will be overwritten (Retype output takes precedence).
 
@@ -37,8 +37,8 @@ If the argument is the `HEAD` keyword, `update-branch` is implied `true` and the
 
 Specifies a root directory, relative to the repository, where to place the Retype output files in.
 
-**Default:** empty (root of the repository)
-**Accepts:** A string. (`/docs`, `a_directory/documentation`)
+- **Default:** empty (root of the repository)
+- **Accepts:** A string. (`/docs`, `a_directory/documentation`)
 
 **Note:** Using `/` or `.` is equivalent not to specify any input, as it will be changing to the `.//` and `./.` directories, respectively. Use upper-level directories (`../`) is accepted but may result in files being copied outside the repository, in which case the action might fail due to no files to commit within the repository boundaries.
 
@@ -46,8 +46,8 @@ Specifies a root directory, relative to the repository, where to place the Retyp
 
 Indicates whether the action should update the target branch instead of forking off it before wipe+commit+push.
 
-**Default:** empty
-**Accepts:** A boolean. (`true`, any other value is equivalent to empty/unspecified)
+- **Default:** empty
+- **Accepts:** A boolean. (`true`, any other value is equivalent to empty/unspecified)
 
 **Note:** When this option is in effect, no pull request will be attempted even if `github-token` is specified.
 
@@ -57,8 +57,8 @@ Indicates whether the action should update the target branch instead of forking 
 
 Specifies a GitHub Access Token that enables the action to make pull request whenever it pushes a new branch forked from the (existing) target branch. Read more about using and passing GitHub Access Tokens to actions at https://docs.github.com/en/actions/reference/authentication-in-a-workflow#using-the-github_token-in-a-workflow.
 
-**Default:** empty
-**Accepts:** A string representing a valid GitHub Access Token either for User, Repository, or Action.
+- **Default:** empty
+- **Accepts:** A string representing a valid GitHub Access Token either for User, Repository, or Action.
 
 **Note:** The action will never use the access token either if the branch does not exist or if `update-branch` is in effect.
 
@@ -66,7 +66,7 @@ Specifies a GitHub Access Token that enables the action to make pull request whe
 
 ## Examples
 
-For all examples below we will assume this workflow context:
+For most examples below we will assume this workflow context:
 
 ```yaml
 name: document
@@ -91,14 +91,14 @@ jobs:
 ```
 
 This will simply use the defaults, which are:
-- **target branch:** `retype`
+- **target branch: retype**
 - **root directory in branch:** branch's root directory
-- **if branch exists:** fork off to a branch called `retype-<github.run_id>-<github.run_number>` (see [github context](https://docs.github.com/en/actions/reference/context-and-expression-syntax-for-github-actions#github-context) for placeholders meaning),
+- **if branch exists:** fork off to a branch called **retype-_<github.run_id>_-_<github.run_number>_** (see [github context](https://docs.github.com/en/actions/reference/context-and-expression-syntax-for-github-actions#github-context) for placeholders meaning),
 - **pull request policy:** never create pull requests
 
 ### Push to a custom branch and use action's own GitHub Token to create pull requests
 
-In this example we'll push to the `gh-pages` and allow the action to use its own access token to create the pull request whenever the branch exists.
+In this example we'll push to the **gh-pages** and allow the action to use its own access token to create the pull request whenever the branch exists.
 
 ```yaml
 - uses: retypeapp/action-github
@@ -108,14 +108,14 @@ In this example we'll push to the `gh-pages` and allow the action to use its own
 ```
 
 Now, the rules will be:
-- **target branch:** `gh-pages`
+- **target branch: gh-pages**
 - **root directory in branch:** branch's root directory
-- **if branch exists:** fork off **gh-pages** to a branch called **gh-pages-<github.run_id>-<github.run_number>** (see [github context](https://docs.github.com/en/actions/reference/context-and-expression-syntax-for-github-actions#github-context) for placeholders meaning),
+- **if branch exists:** fork off **gh-pages** to a branch called **gh-pages-_<github.run_id>_-_<github.run_number>_** (see [github context](https://docs.github.com/en/actions/reference/context-and-expression-syntax-for-github-actions#github-context) for placeholders meaning),
 - **pull request policy:** if it forked off the target branch, then make a pull request from **gh-pages-<github.run_id>-<github.run_number>** into **gh-pages**
 
-**Notice:** Regarding pull requests, the first time the action runs will probably be the only time the **gh-pages** branch does not exist. So from the second time onwards, where the branch will already be in the repository, pull requests should be created.
+**Note:** Regarding pull requests, the first time the action runs will probably be the only time the **gh-pages** branch does not exist. So from the second time onwards, where the branch will already be in the repository, pull requests should be created.
 
-**Notice:** Just pushing the **gh-pages** branch from an action won't automatically enable the GitHub Pages feature
+**Note:** Just pushing the **gh-pages** branch from an action won't automatically enable the GitHub Pages feature
  to the repository as it does when a repository admin pushes it. The feature must be manually enabled from the repository settings.
 
 ### Place documentation to `main` branch within `docs` folder
@@ -130,12 +130,12 @@ This example assumes GitHub Pages was configured to serve pages in the **main** 
 ```
 
 Now, the rules will be:
-- **target branch:** `main`
+- **target branch: main**
 - **root directory in branch:** branch's root directory
-- **if branch exists:** fork off **main** to a branch called **main-<github.run_id>-<github.run_number>**,
+- **if branch exists:** fork off **main** to a branch called **main-_<github.run_id>_-_<github.run_number>_**,
 - **pull request policy:** given the **main** branch always exist, it will always make a pull request from **main-<github.run_id>-<github.run_number>** into **main** when triggered
 
-**Notice:** In this context, one would probably prefer that the Action be triggered on pushes/merges to the **main** branch only, thus the action file would rather look like this:
+**Note:** In this context, one would probably prefer that the Action be triggered on pushes/merges to the **main** branch only, thus the action file would rather look like this:
 
 ```yaml
 name: document
@@ -161,7 +161,7 @@ jobs:
           directory: docs
 ```
 
-**Notice:** In this case if the `branch: HEAD` argument is used, although it would always push to **main** as intended, it would always update the branch directly instead of making pull requests.
+**Note:** In this case if the `branch: HEAD` argument is used, although it would always push to **main** as intended, it would always update the branch directly instead of making pull requests.
 
 ### Update GitHub Pages on release
 
@@ -194,7 +194,7 @@ jobs:
 ```
 
 Rules will be:
-- **target branch:** `gh-pages`
+- **target branch: gh-pages**
 - **root directory in branch:** branch's root directory
 - **if branch exists:** make changes directly to the branch
 - **pull request policy:** never create pull requests; will push branch with modifications directly to GitHub
