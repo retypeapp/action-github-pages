@@ -19,8 +19,27 @@ fi
 
 bldroot="${RETYPE_OUTPUT_ROOT}"
 outdir="${bldroot}/output"
-targetbranch="${INPUT_BRANCH-retype}"
+
+if [ -z "${INPUT_BRANCH}" ]; then
+  targetbranch="retype"
+else
+  targetbranch="${INPUT_BRANCH}"
+fi
+
 targetdir="${INPUT_DIRECTORY}"
+if [ -z "${INPUT_DIRECTORY}" ]; then
+  targetdir="."
+else
+  targetdir="${INPUT_DIRECTORY}"
+  while [ "${targetdir: -1}" == "/"]; do
+    targetdir="${targetdir::-1}"
+  done
+
+  # in case INPUT_DIRECTORY contains only / characters.
+  if [ -z "${targetdir}" ]; then
+    targetdir="."
+  fi
+fi
 
 function wipe_wd() {
   local keepcname=false rootdir rootdirs
@@ -61,11 +80,11 @@ fi
 
 echo "Retype built documentation path: ${RETYPE_OUTPUT_ROOT}
 Target branch: ${targetbranch}
-Target directory: ${targetdir}"
+Target directory: ${targetdir}/"
 
+# We assign the name here because 'branchname' will point to the temporary
+# branch if we need to fork off the target one.
 branchname="${targetbranch}"
-echo -n "Target branch to publish to: ${branchname}"
-
 echo -n "Fetching remote for existing branches: "
 result="$(git fetch 2>&1)" || \
   fail_cmd true "unable to fetch remote repository for existing branches" "git fetch" "${result}"
