@@ -1,0 +1,25 @@
+name: 'Retype documentation GitHub handler'
+description: 'Use this action to handle GitHub-related tasks with Retype generated documentation.'
+inputs:
+  branch:
+    description: 'The name of the target branch where the documentation should be committed to; defaults to "retype"'
+    required: false
+  directory:
+    description: 'The relative path within the repo/branch where to place the documentation files in'
+    required: false
+  update-branch:
+    description: 'Set as "true" to push changes to the same branch; by default if branch exists it will push to a fork'
+    required: false
+  github-token:
+    description: 'If not setting "update-branch" this enables creating a pull request off the fork to the target branch using GitHub API with the specified token'
+    required: false
+runs:
+  using: "composite"
+  steps:
+    - run: "${GITHUB_ACTION_PATH}/github.sh"
+      shell: bash
+      env:
+        INPUT_BRANCH: ${{ inputs.branch }}
+        INPUT_DIRECTORY: ${{ inputs.directory }}
+        INPUT_UPDATE_BRANCH: ${{ inputs.update-branch }}
+        INPUT_GITHUB_TOKEN: ${{ inputs.github_token }}
