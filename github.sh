@@ -204,9 +204,9 @@ result="$("${cmdln[@]}" 2>&1)" || \
   fail_cmd true "unable to commit changes to repository" "${cmdln[@]}" "${result}"
 echo "done."
 
-echo -n "Pushing website to GitHub: "
+echo -n "Pushing '${branchname}' branch back to GitHub: "
 result="$(git push --quiet origin HEAD 2>&1)" || \
-  fail_cmd true "unable to push branch to GitHub" "git push origin HEAD" "${result}"
+  fail_cmd true "unable to push the '${branchname}' branch back to GitHub" "git push origin HEAD" "${result}"
 echo "done."
 
 if [ ! -z "${INPUT_GITHUB_TOKEN}" -a "${needpr}" ]; then
