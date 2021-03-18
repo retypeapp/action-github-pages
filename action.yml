@@ -22,4 +22,4 @@ runs:
         INPUT_BRANCH: ${{ inputs.branch }}
         INPUT_DIRECTORY: ${{ inputs.directory }}
         INPUT_UPDATE_BRANCH: ${{ inputs.update-branch }}
-        INPUT_GITHUB_TOKEN: ${{ inputs.github_token }}
+        INPUT_GITHUB_TOKEN: ${{ inputs.github-token }}
