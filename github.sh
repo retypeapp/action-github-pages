@@ -179,7 +179,7 @@ elif git branch --list --remotes --format="%(refname)" | egrep -q "^refs/remotes
 
   echo -n "Cleaning up "
 
-  if [ ! -z "${targetdir}" ]; then
+  if [ ! -z "${INPUT_DIRECTORY}" ]; then
     echo -n "target directory: "
     if [ -d "./${targetdir}" ]; then
       cd "./${targetdir}"
