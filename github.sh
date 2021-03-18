@@ -207,14 +207,14 @@ else
   echo -n "cleanup"
   git reset --quiet HEAD -- . || fail_nl "unable to remove original files from staging."
 
-  git clean -x -q -f || fail_nl "unable to clean-up repository from non-website-related files."
+  git clean -d -x -q -f || fail_nl "unable to clean-up repository from non-website-related files."
 
   IFS=$'\n'
   rootdirs=($(git ls-files --other | cut -f1 -d/ | sort -u))
   IFS="${_ifs}"
 
   for rootdir in "${rootdirs[@]}"; do
-    git clean -x -q -f "${rootdir}" || fail_nl "unable to clean up root directory: ${rootdir}"
+    git clean -d -x -q -f "${rootdir}" || fail_nl "unable to clean up root directory: ${rootdir}"
   done
 
   if [ ! -z "${targetdir}" ]; then
