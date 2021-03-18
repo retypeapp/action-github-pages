@@ -140,6 +140,10 @@ if [ "${branchname}" == "HEAD" ]; then
   fi
 
   config_id="$(get_config_id)"
+  if [ ! -z "${config_id}" ]; then
+    echo -n "found config.js's ID, "
+  fi
+
   wipe_wd
   echo "done."
 elif git branch --list --remotes --format="%(refname)" | egrep -q "^refs/remotes/origin/${branchname}\$"; then
@@ -190,6 +194,10 @@ elif git branch --list --remotes --format="%(refname)" | egrep -q "^refs/remotes
   fi
 
   config_id="$(get_config_id)"
+  if [ ! -z "${config_id}" ]; then
+    echo -n "found config.js's ID, "
+  fi
+
   wipe_wd
   echo "done."
 else
@@ -222,8 +230,12 @@ result="$(cp -pPR "${outdir}/." . 2>&1)" || \
   fail_cmd true "error copying files from retype output directory: ${outdir}" "cp -pPR \"${outdir}/.\" ." "${result}"
 echo "done."
 
+echo -n "Staging deployed files for commit: "
+git add . > /dev/null 2>&1 || fail_nl "unable to stage changes in the repository."
+echo "done."
+
 echo -n "Checking for changes in repository: "
-result="$(git status --porcelain 2>&1)"
+result="$(git status --porcelain . 2>&1)"
 
 if [ "${#result}" -eq 0 ]; then
   echo "no change.
@@ -234,22 +246,25 @@ fi
 # Check if the only change is config.js's random ID.
 if [ ! -z "${config_id}" -a \
     $(echo "${result}" | wc -l) -eq 1 -a \
-    "${result}" == " M ${configjs_path}" ]; then
+    "${result: -${#configjs_path}}" == "${configjs_path}" ]; then
   new_cid="$(replace_config_id "${config_id}")"
 
-  if [ -z "$(git status --porcelain 2>&1)" ]; then
+  git add "${configjs_path}" > /dev/null 2>&1 || \
+    fail_nl "unable to stage config.js while checking for changes in repository."
+
+  if [ -z "$(git status --porcelain . 2>&1)" ]; then
     echo "config.js ID change only.
 The only change in repository is the '${configjs_path}' file's id. Ignoring it."
     exit 0
   else
     temp="$(replace_config_id "${new_cid}")"
+    git add "${configjs_path}" > /dev/null 2>&1 || \
+      fail_nl "unable to stage config.js while reverting changes to it."
   fi
 fi
 echo "changes found."
 
 echo -n "Committing files: "
-git add . > /dev/null || fail_nl "unable to stage changes in the repository."
-
 git config user.email hello+retype-gitpush@object.net
 git config user.name "Retype GitHub Action"
 
