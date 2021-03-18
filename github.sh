@@ -57,14 +57,18 @@ function get_config_id() {
 }
 
 function replace_config_id() {
-  local new_id="${1}"
+  local new_id="${1}" re_id
   local current_id
 
   if [ ! -z "${new_id}" -a -e "${configjs_path}" ]; then
     current_id="$(get_config_id)"
 
     if [ "${current_id}" != "${new_id}" ]; then
-      inplace_sed "s/(\"id\":\")[^\"]{35}(\")/\1${new_id}\2/g" "${configjs_path}" || return 1
+      re_id="${new_id//\\/\\\\}"
+      re_id="${re_id//\//\\/}"
+      re_id="${re_id//\&/\\\&}"
+
+      inplace_sed "s/(\"id\":\")[^\"]{35}(\")/\1${re_id}\2/g" "${configjs_path}" || return 1
       echo "${current_id}"
     fi
 
