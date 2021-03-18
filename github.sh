@@ -2,6 +2,7 @@
 
 _ifs="${IFS}"
 orgwd="$(pwd)"
+configjs_path="resources/js/config.js"
 
 if [ ! -e "${GITHUB_ACTION_PATH}/functions.inc.sh" ]; then
   echo "::error file=${BASH_SOURCE},line=${LINENO}::Unable to locate functions.inc.sh file."
@@ -40,6 +41,36 @@ else
     targetdir="."
   fi
 fi
+
+function get_config_id() {
+  local id
+
+  if [ -e "${configjs_path}" ]; then
+    id="$(sed -E "s/.*\"id\":\"([^\"]{35})\".*/\1/" "${configjs_path}" 2>&1)"
+
+    if [ ${#id} -eq 35 ]; then
+      echo "${id}"
+    fi
+  fi
+}
+
+function replace_config_id() {
+  local new_id="${1}"
+  local current_id
+
+  if [ ! -z "${new_id}" -a -e "${configjs_path}" ]; then
+    current_id="$(get_config_id)"
+
+    if [ "${current_id}" != "${new_id}" ]; then
+      inplace_sed "s/(\"id\":\")[^\"]{35}(\")/\1${new_id}\2/g" "${configjs_path}"
+      echo "${current_id}"
+    fi
+
+    return 0
+  fi
+
+  return 1
+}
 
 function wipe_wd() {
   local keepcname=false rootdir rootdirs
@@ -91,6 +122,7 @@ result="$(git fetch 2>&1)" || \
 echo "done."
 
 needpr=false
+config_id=""
 if [ "${branchname}" == "HEAD" ]; then
   if [ -z "${INPUT_DIRECTORY}" ]; then
     fail "Refusing to deploy the documentation to the root of the branch where documentation source is."
@@ -107,6 +139,7 @@ if [ "${branchname}" == "HEAD" ]; then
     cd "./${targetdir}" || fail_nl "unable to change to target dir: ${targetdir}"
   fi
 
+  config_id="$(get_config_id)"
   wipe_wd
   echo "done."
 elif git branch --list --remotes --format="%(refname)" | egrep -q "^refs/remotes/origin/${branchname}\$"; then
@@ -156,6 +189,7 @@ elif git branch --list --remotes --format="%(refname)" | egrep -q "^refs/remotes
     echo -n "branch: "
   fi
 
+  config_id="$(get_config_id)"
   wipe_wd
   echo "done."
 else
@@ -188,6 +222,31 @@ result="$(cp -pPR "${outdir}/." . 2>&1)" || \
   fail_cmd true "error copying files from retype output directory: ${outdir}" "cp -pPR \"${outdir}/.\" ." "${result}"
 echo "done."
 
+echo -n "Checking for changes in repository: "
+result="$(git status --porcelain 2>&1)"
+
+if [ "${#result}" -eq 0 ]; then
+  echo "no change.
+No changes in working directory after documentation deploy."
+  exit 0
+fi
+
+# Check if the only change is config.js's random ID.
+if [ ! -z "${config_id}" -a \
+    $(echo "${result}" | wc -l) -eq 1 -a \
+    "${result}" == " M ${configjs_path}" ]; then
+  new_cid="$(replace_config_id "${config_id}")"
+
+  if [ -z "$(git status --porcelain 2>&1)" ]; then
+    echo "config.js ID change only.
+The only change in repository is the '${configjs_path}' file's id. Ignoring it."
+    exit 0
+  else
+    temp="$(replace_config_id "${new_cid}")"
+  fi
+fi
+echo "changes found."
+
 echo -n "Committing files: "
 git add . > /dev/null || fail_nl "unable to stage changes in the repository."
 
@@ -197,9 +256,7 @@ git config user.name "Retype GitHub Action"
 commitmsg="Refreshes Retype-generated documentation.
 
 Process triggered by ${GITHUB_ACTOR}."
-
 cmdln=(git commit --quiet -m "${commitmsg}")
-
 result="$("${cmdln[@]}" 2>&1)" || \
   fail_cmd true "unable to commit changes to repository" "${cmdln[@]}" "${result}"
 echo "done."
