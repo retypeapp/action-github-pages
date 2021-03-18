@@ -46,10 +46,12 @@ function get_config_id() {
   local id
 
   if [ -e "${configjs_path}" ]; then
-    id="$(sed -E "s/.*\"id\":\"([^\"]{35})\".*/\1/" "${configjs_path}" 2>&1)"
+    id="$(sed -E "s/.*\"id\":\"([^\"]{35})\".*/\1/" "${configjs_path}" 2>&1)" || return 1
 
     if [ ${#id} -eq 35 ]; then
       echo "${id}"
+    elif [ ! -z "${id}" ]; then
+      return 1
     fi
   fi
 }
@@ -62,7 +64,7 @@ function replace_config_id() {
     current_id="$(get_config_id)"
 
     if [ "${current_id}" != "${new_id}" ]; then
-      inplace_sed "s/(\"id\":\")[^\"]{35}(\")/\1${new_id}\2/g" "${configjs_path}"
+      inplace_sed "s/(\"id\":\")[^\"]{35}(\")/\1${new_id}\2/g" "${configjs_path}" || return 1
       echo "${current_id}"
     fi
 
@@ -139,7 +141,7 @@ if [ "${branchname}" == "HEAD" ]; then
     cd "./${targetdir}" || fail_nl "unable to change to target dir: ${targetdir}"
   fi
 
-  config_id="$(get_config_id)"
+  config_id="$(get_config_id)" || fail_nl "unexpected error trying to get config ID from '${configjs_path}'."
   if [ ! -z "${config_id}" ]; then
     echo -n "found config.js's ID, "
   fi
@@ -193,7 +195,7 @@ elif git branch --list --remotes --format="%(refname)" | egrep -q "^refs/remotes
     echo -n "branch: "
   fi
 
-  config_id="$(get_config_id)"
+  config_id="$(get_config_id)" || fail_nl "unexpected error trying to get config ID from '${configjs_path}'."
   if [ ! -z "${config_id}" ]; then
     echo -n "found config.js's ID, "
   fi
@@ -247,17 +249,19 @@ fi
 if [ ! -z "${config_id}" -a \
     $(echo "${result}" | wc -l) -eq 1 -a \
     "${result: -${#configjs_path}}" == "${configjs_path}" ]; then
-  new_cid="$(replace_config_id "${config_id}")"
+  new_cid="$(replace_config_id "${config_id}")" || \
+    fail_nl "unexpected error while trying to fetch new ID from '${configjs_path}'."
 
   git add "${configjs_path}" > /dev/null 2>&1 || \
-    fail_nl "unable to stage config.js while checking for changes in repository."
+    fail_nl "unable to stage '${configjs_path}' while checking for changes in repository."
 
   if [ -z "$(git status --porcelain . 2>&1)" ]; then
     echo "config.js ID change only.
 The only change in repository is the '${configjs_path}' file's id. Ignoring it."
     exit 0
   else
-    temp="$(replace_config_id "${new_cid}")"
+    temp="$(replace_config_id "${new_cid}")" || \
+      fail_nl "unexpected error while trying revert ID change in '${configjs_path}'."
     git add "${configjs_path}" > /dev/null 2>&1 || \
       fail_nl "unable to stage config.js while reverting changes to it."
   fi

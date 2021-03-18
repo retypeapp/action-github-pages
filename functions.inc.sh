@@ -81,9 +81,11 @@ ${abortbuildmsg}"
 if [ "${OSTYPE::6}" == "darwin" ]; then
   function inplace_sed() {
     sed -Ei '' "${@}"
+    return ${?}
   }
 else
   function inplace_sed() {
     sed -Ei "${@}"
+    return ${?}
   }
 fi
