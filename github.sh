@@ -88,8 +88,8 @@ function wipe_wd() {
   git rm -r --quiet . || fail_nl "unable to git-rm checked out repository."
 
   if ${keepcname}; then
-    git checkout -- CNAME || fail_nl "unable to check out CNAME file after git-rm."
     git reset HEAD -- CNAME || fail_nl "unable to reset CNAME file to previous branch HEAD."
+    git checkout -- CNAME || fail_nl "unable to check out CNAME file after git-rm."
   fi
 
   IFS=$'\n'
