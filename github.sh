@@ -19,7 +19,7 @@ if [ -z "${RETYPE_OUTPUT_ROOT}" ]; then
 fi
 
 bldroot="${RETYPE_OUTPUT_ROOT}"
-outdir="${bldroot}/output"
+outdir="${bldroot}"
 
 if [ -z "${INPUT_BRANCH}" ]; then
   targetbranch="retype"
@@ -273,7 +273,7 @@ fi
 echo "changes found."
 
 echo -n "Committing files: "
-git config user.email hello+retype-gitpush@object.net
+git config user.email retype@object.net
 git config user.name "Retype GitHub Action"
 
 commitmsg="Refreshes Retype-generated documentation.
