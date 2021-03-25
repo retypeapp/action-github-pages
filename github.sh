@@ -42,6 +42,17 @@ else
   fi
 fi
 
+# If current working directory is not repository root, git-rm will erase it.
+function ensure_wd() {
+  if [ ! -d "$(pwd)" ]; then
+    mkdir -p "$(pwd)" || fail_nl "unable to re-create current working directory after git-rm cleanup."
+
+    # in linux and darwin, when the directory is re-created it will likely lie under a
+    # different filesystem entry, so it is necessary to move again within it.
+    cd "$(pwd)" || fail_nl "unable to chdir to re-created working directory."
+  fi
+}
+
 function get_config_id() {
   local id
 
@@ -86,6 +97,7 @@ function wipe_wd() {
   fi
 
   git rm -r --quiet . || fail_nl "unable to git-rm checked out repository."
+  ensure_wd
 
   if ${keepcname}; then
     git reset HEAD -- CNAME || fail_nl "unable to reset CNAME file to previous branch HEAD."
@@ -99,6 +111,7 @@ function wipe_wd() {
   for rootdir in "${rootdirs[@]}"; do
     git rm -r --quiet "${rootdir}" || fail_nl "unable to remove directory at root: ${rootdir}"
   done
+  ensure_wd
 }
 
 if [ "${OSTYPE}" == "msys" ]; then
