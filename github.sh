@@ -32,7 +32,7 @@ if [ -z "${INPUT_DIRECTORY}" ]; then
   targetdir="."
 else
   targetdir="${INPUT_DIRECTORY}"
-  while [ "${targetdir: -1}" == "/"]; do
+  while [ "${targetdir: -1}" == "/" ]; do
     targetdir="${targetdir::-1}"
   done
 
