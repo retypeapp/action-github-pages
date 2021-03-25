@@ -289,7 +289,7 @@ result="$(git push --quiet origin HEAD 2>&1)" || \
   fail_cmd true "unable to push the '${branchname}' branch back to GitHub" "git push origin HEAD" "${result}"
 echo "done."
 
-if [ ! -z "${INPUT_GITHUB_TOKEN}" -a "${needpr}" ]; then
+if [ ! -z "${INPUT_GITHUB_TOKEN}" -a "${needpr}" == "true" ]; then
   pr_title="$(echo "${commitmsg}" | head -n1)"
   # body's newlines must be converted to the '\n' string.
   pr_body="$(echo "${commitmsg}" | sed -E ":a; N; \$!ba; s/\n/\\\\n/g")"
