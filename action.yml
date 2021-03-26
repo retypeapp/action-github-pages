@@ -1,18 +1,38 @@
-name: 'Retype documentation GitHub handler'
+name: Retype Action for GitHub Pages
 author: Object.NET, Inc.
-description: 'Use this action to handle GitHub-related tasks with Retype generated documentation.'
+description: |-
+  Commits and pushes built Retype documentation back to the repository, useful
+  as a publish tool for GitHub Pages. By default, pushes documentation to the
+  root directory of the "retype" branch. If the branch exists, will create
+  another branch so it can be manually merged. Various inputs allows specifying
+  target branch, target subfolder, GitHub API Token to create pull requests (if
+  target branch exists), and whether it should push directly to the branch
+  to update docs at once.
 inputs:
   branch:
-    description: 'The name of the target branch where the documentation should be committed to; defaults to "retype"'
+    description: |-
+      The name of the target branch where the documentation should be committed
+      to. Defaults to "retype"
     required: false
   directory:
-    description: 'The relative path within the repo/branch where to place the documentation files in'
+    description: |-
+      The relative path within the repo/branch where to place the documentation
+      files in. Useful if you use the "docs" directory on "main" branch to
+      publish the pages. Defaults to root of the branch.
     required: false
   update-branch:
-    description: 'Set as "true" to push changes to the same branch; by default if branch exists it will push to a fork'
+    description: |-
+      Set as "true" to push changes straight to the target branch if it already
+      exists. This will avoid the need of pull requests or merges when updating
+      the documentation. Defaults to "false"/unset.
     required: false
   github-token:
-    description: 'If not setting "update-branch" this enables creating a pull request off the fork to the target branch using GitHub API with the specified token'
+    description: |-
+      GitHub Token to use to create pull requests in case a new branch is
+      created. If the target branch exists and "update-branch" is not set,
+      then a pull request to merge the temporary branch will be created as
+      it is pushed to GitHub. If unset, may push a new branch but won't
+      create pull requests. Defaults to unset.
     required: false
 runs:
   using: "composite"
