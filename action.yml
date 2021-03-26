@@ -1,4 +1,5 @@
 name: 'Retype documentation GitHub handler'
+author: Object.NET, Inc.
 description: 'Use this action to handle GitHub-related tasks with Retype generated documentation.'
 inputs:
   branch:
