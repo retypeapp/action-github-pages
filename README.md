@@ -1,16 +1,36 @@
-# Retype APP GitHub Actions (RAGHA) - GitHub
+# Retype APP GitHub Actions - GitHub Pages
 
-GitHub action to push built Retype documentation websites back to GitHub and optionally create a pull request.
+GitHub action to push built Retype documentation websites back to GitHub and optionally create a pull request. Basically allows publishing fresh documentation to your preferred GitHub pages destination.
 
 ## Introduction
 
-This action will commit and push back Retype documentation previously assembled by the **Retype Build Action**. It is possible to specify the target branch (`branch`), top-level directory (relative to the repository, `directory`), whether a new branch should be created if it already exists (`update-branch`), and a github API access token to allow the action to also make pull request to the specified branch when needed (`github-token`).
+This action will commit and push back Retype documentation previously assembled by the **Retype Build Action** step. It is possible to specify the target branch (`branch`), top-level directory (relative to the repository, `directory`), whether a new branch should be created if it already exists (`update-branch`), and a github API access token to allow the action to also make pull request to the specified branch when needed (`github-token`).
+
+See Retype documentation at [Retype WebSite](https://retype.com/).
+
+See Retype Build Action at [retypeapp/action-build](https://github.com/retypeapp/action-build).
 
 ## Prerequisites
 
-This action should only be called in the same job the **Retype Build Action** is run. In other words it should be another step in a same job the **Retype Build Action** is in. And this action should be a run-step placed **after** the build one.
+This action expects documentation is already built by the **Retype Build Action** in a previous step, so make sure to include it in your job steps.
 
 For the target branch or branch-directory to actually publish the documentation website, the GitHub Pages feature should be available and configured in the repository settings. See [Getting Started with GitHub Pages at GitHub docs](https://docs.github.com/en/github/working-with-github-pages/getting-started-with-github-pages).
+
+**Note:** Read the Retype Build Action documentation for an explanation as to why the actions/setup-dotnet is a recommended step before build. See Retype Build Action at [retypeapp/action-build](https://github.com/retypeapp/action-build).
+
+## Usage
+
+```yaml
+- uses: actions/checkout@v2
+
+- uses: actions/setup-dotnet@v1
+  with:
+    dotnet-version: 5.0.x
+
+- uses: retypeapp/action-build@v1
+
+- uses: retypeapp/action-github-pages@v1
+```
 
 ## Inputs
 
@@ -83,7 +103,7 @@ jobs:
 ### Push to the `retype` branch's root
 
 ```yaml
-- uses: retypeapp/action-github
+- uses: retypeapp/action-github-pages
 ```
 
 This will simply use the defaults, which are:
@@ -97,7 +117,7 @@ This will simply use the defaults, which are:
 In this example we'll push to the **gh-pages** and allow the action to use its own access token to create the pull request whenever the branch exists.
 
 ```yaml
-- uses: retypeapp/action-github
+- uses: retypeapp/action-github-pages
   with:
     branch: gh-pages
     github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -119,7 +139,7 @@ Now, the rules will be:
 This example assumes GitHub Pages was configured to serve pages in the **main** branch, under the **docs/** subfolder.
 
 ```yaml
-- uses: retypeapp/action-github
+- uses: retypeapp/action-github-pages
   with:
     branch: main
     directory: docs
@@ -151,7 +171,7 @@ jobs:
 
       - uses: retypeapp/action-build
 
-      - uses: retypeapp/action-github
+      - uses: retypeapp/action-github-pages
         with:
           branch: main
           directory: docs
@@ -159,12 +179,12 @@ jobs:
 
 **Note:** In this case if the `branch: HEAD` argument is used, although it would always push to **main** as intended, it would always update the branch directly instead of making pull requests.
 
-### Update GitHub Pages on release
+### Update GitHub Pages on New Release
 
 The following example will take a full YAML example as it depends on a different context. Here we want, whenever a new release is created in GitHub, to update the documentation to the **gh-pages** branch which will, in turn, refresh the documentation website configured (hypothetically) for that repo.
 
 ```yaml
-name: Publish documentation on Release
+name: Publish documentation on New Release
 on:
   release:
     types: [ published ]
@@ -183,7 +203,7 @@ jobs:
 
       - uses: retypeapp/action-build
 
-      - uses: retypeapp/action-github
+      - uses: retypeapp/action-github-pages
         with:
           branch: gh-pages
           update-branch: true
