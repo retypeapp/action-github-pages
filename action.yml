@@ -1,13 +1,7 @@
 name: Retype Action for GitHub Pages
 author: Object.NET, Inc.
 description: |-
-  Commits and pushes built Retype documentation back to the repository, useful
-  as a publish tool for GitHub Pages. By default, pushes documentation to the
-  root directory of the "retype" branch. If the branch exists, will create
-  another branch so it can be manually merged. Various inputs allows specifying
-  target branch, target subfolder, GitHub API Token to create pull requests (if
-  target branch exists), and whether it should push directly to the branch
-  to update docs at once.
+  Publishes Retype documentation to GitHub Pages' branch/directory.
 inputs:
   branch:
     description: |-
