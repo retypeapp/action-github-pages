@@ -1,32 +1,32 @@
 name: Retype Action for GitHub Pages
 author: Object.NET, Inc.
 description: |-
-  Publishes Retype documentation to GitHub Pages' branch/directory.
+  Publishes a Retype website to a branch, directory, or creates a pull request.
 inputs:
   branch:
     description: |-
-      The name of the target branch where the documentation should be committed
-      to. Defaults to "retype"
+      The name of the target branch where the Retype output will be committed. 
+      Default is "retype"
     required: false
   directory:
     description: |-
-      The relative path within the repo/branch where to place the documentation
-      files in. Useful if you use the "docs" directory on "main" branch to
-      publish the pages. Defaults to root of the branch.
+      The relative path within the repo/branch where to commit the Retype output.
+      Useful if you use GitHub pages to host from the "docs" folder on "main" 
+      branch. Defaults to root of the branch.
     required: false
   update-branch:
     description: |-
-      Set as "true" to push changes straight to the target branch if it already
-      exists. This will avoid the need of pull requests or merges when updating
-      the documentation. Defaults to "false"/unset.
+      Set as true to push changes directly to the target branch, even if it 
+      already exists. This will avoid the need for the action to create a pull 
+      request. Default is false.
     required: false
   github-token:
     description: |-
-      GitHub Token to use to create pull requests in case a new branch is
-      created. If the target branch exists and "update-branch" is not set,
-      then a pull request to merge the temporary branch will be created as
-      it is pushed to GitHub. If unset, may push a new branch but won't
-      create pull requests. Defaults to unset.
+      A GitHub Token used by the action to create a pull request in cases where 
+      a new uniquely named branch is created. If the target branch exists and 
+      "update-branch" is not true, then a pull request to merge the temporary 
+      branch will be created. If this option is not set, the action may push a 
+      new branch but will not create a pull request. Default is empty.
     required: false
 runs:
   using: "composite"
