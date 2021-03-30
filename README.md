@@ -63,13 +63,17 @@ Specifies the target branch where the Retype output will be merged.
 - **Default:** `retype`
 - **Accepts:** A string or the `HEAD` keyword. Examples: `gh-pages`, `main`, `website`, `HEAD`
 
-- **If the branch does not exist**: the action will create a new, orphan branch; then copy over the files, commit and push.
+- **If the branch does not exist**: The action will create a new, orphan branch; then copy over the files, commit, and push.
 - **If the branch exists:**
-  - **And `update-branch` input is not configured or not `true`:** the action will fork from that branch into a new, uniquely-named branch. The action will then wipe clean the entire branch (or a subdirectory within that branch) and copy over the Retype output files, then commit and push. This branch can then be merged or be used to make a pull request to the target branch (this action can create the pull request, see `github-token` input below).
-  - **The `update-branch` input is `true`:** the action will wipe clean the branch (or directory), then copy over the Retype output, commit, and then push to the target branch.
-- **The argument is the `HEAD` keyword:** `update-branch` is implied `true` and Retype output files will be committed to the current branch. In this scenario, the action will ONLY run if a `directory` has been configured, as it would otherwise mean replacing all branch contents with the Retype output.
+  - **And `update-branch` input is not `true`:** The action will fork from that branch into a new uniquely-named branch. The action will then wipe clean the entire branch (or a subdirectory within that branch), then copy over the Retype output files, then commit and push. This branch can then be merged or be used to make a pull request to the target branch. This action can create the pull request, see `github-token` input below.
+  - **The `update-branch` input is `true`:** The action will wipe clean the branch (or directory), then copy over the Retype output, commit, and then push to the target branch.
+- **The argument is `HEAD` keyword:** `update-branch` is implied `true` and Retype output files will be committed to the current branch. In this scenario, the action will ONLY run if a `directory` has been configured, as it would otherwise result in the replacement of all branch contents with the Retype output.
 
-When wiping a branch or directory, if there is a `CNAME` file in the target directory root, the existing `CNAME` file will be preserved. If the [`cname`](https://retype.com/configuration/project/) property is configured within your projects `retype.json` file, the `CNAME` file from the Retype build output will be used. See [Managing a custom domain for your GitHub Pages site](https://docs.github.com/en/github/working-with-github-pages/managing-a-custom-domain-for-your-github-pages-site) for additional details about `CNAME` files and configuring a custom domain or sub-domain for web hosting.
+When wiping a branch or directory, if there is a `CNAME` file in the target directory root, the existing `CNAME` file will be preserved. 
+
+If the [`cname`](https://retype.com/configuration/project/) property is configured within your projects `retype.json` file, the `CNAME` file from the Retype build output will be used. 
+
+See [Managing a custom domain for your GitHub Pages site](https://docs.github.com/en/github/working-with-github-pages/managing-a-custom-domain-for-your-github-pages-site) for additional details regarding `CNAME` files and configuring a custom domain or sub-domain for web hosting.
 
 If the `HEAD` keyword is used and `.`, `/`, or any path coinciding with the repository root is specified to `directory` input, then the whole repository data will be replaced with the generated documentation. Likewise, if the path passed as input conflicts with any existing path within the repository, it will be wiped clean by the commit, replaced recursively by only the Retype output.
 
@@ -78,7 +82,7 @@ If the `HEAD` keyword is used and `.`, `/`, or any path coinciding with the repo
 Specifies the root where to place the Retype output files. The path is relative to the repository.
 
 - **Default:** null (root of the repository)
-- **Accepts:** A string. Examples: `/docs`, `a_directory/documentation`
+- **Accepts:** A string. Example: `docs`
 
 Using `/` or `.` is equivalent to not specifying an input, as it will be changing to the `.//` and `./.` directories respectively. Use of upper-level directories (`../`) is accepted but may result in files being copied outside the repository, in which case the action might fail due to being outside the repository boundaries.
 
@@ -104,14 +108,20 @@ The action will never use the access token if (1) the branch does not exist, (2)
 
 ## Examples
 
-For most of the following samples, the following `retype.yaml` workflow file will serve as our starting template. The `retypeapp/action-build` is a required step before running the `retypeapp/action-github-pages` action.
+The following `retype.yaml` workflow file will serve as our starting template for most of the samples below.
 
 ```yaml
-name: document
-on: push
+name: GitHub Action for Retype
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
 jobs:
-  job1:
+  publish:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v2
 
@@ -119,20 +129,24 @@ jobs:
         with:
           dotnet-version: 5.0.x
 
-      - uses: retypeapp/action-build
+      - uses: retypeapp/action-build@v1
+
+      - uses: retypeapp/action-github-pages
+        with:
+          branch: retype
+          update-branch: true
 ```
 
-### Push to the `retype` branch
+The `retypeapp/action-build` is a required step before running the `retypeapp/action-github-pages` action.
+
+### Most common setup
 
 ```yaml
 - uses: retypeapp/action-github-pages
+  with:
+    branch: retype
+    update-branch: true
 ```
-
-This will simply use the defaults, which are:
-- **target branch:** `retype`
-- **root directory in branch:** branch root directory
-- **if branch exists:** fork off to a branch called `retype-<github.run_id>-<github.run_number>` (see [github context](https://docs.github.com/en/actions/reference/context-and-expression-syntax-for-github-actions#github-context) for placeholder details),
-- **pull request policy:** never create a pull request
 
 ### Push to a custom branch and use the action's own GitHub Token to create a pull request
 
@@ -145,10 +159,11 @@ In this example we will push to a `gh-pages` branch and allow the action to use 
     github-token: ${{ secrets.GITHUB_TOKEN }}
 ```
 
-Now, the rules will be:
+#### Rules:
+
 - **target branch:** `gh-pages`
-- **root directory in branch:** branch root directory
-- **if branch exists:** fork off `gh-pages` to a branch called `gh-pages-<github.run_id>-<github.run_number>`,
+- **root directory in branch:** Branch root directory
+- **if branch exists:** Fork off `gh-pages` to a branch called `gh-pages-<github.run_id>-<github.run_number>`,
 - **pull request policy:** if it forked off the target branch, then make a pull request from `gh-pages-<github.run_id>-<github.run_number>` into `gh-pages`
 
 Regarding pull requests, the first time the action runs will probably be the only time a new `gh-pages` branch will be pushed. Starting from the second time and onwards, the branch already exist and a pull request would be created by the action.
@@ -166,16 +181,17 @@ This example assumes GitHub Pages was configured to serve pages from the `docs` 
     directory: docs
 ```
 
-Now, the rules will be:
+#### Rules:
+
 - **target branch:** `main`
-- **root directory in branch:** branch root directory
-- **if branch exists:** fork off `main` to a branch called `main-<github.run_id>-<github.run_number>`,
-- **pull request policy:** given the `main` branch always exist, it will always make a pull request from `main--<github.run_id>-<github.run_number>` into `main` when triggered
+- **root directory in branch:** Branch root directory
+- **if branch exists:** Fork off `main` to a branch called `main-<github.run_id>-<github.run_number>`,
+- **pull request policy:** Given the `main` branch always exist, it will always make a pull request from `main--<github.run_id>-<github.run_number>` into `main` when triggered
 
 In this context, one would probably prefer that the action to be triggered on pushes/merges to the `main` branch only, thus the action file would rather be configured like the following:
 
 ```yaml
-name: document
+name: GitHub Action for Retype
 on:
   push:
     branches:
@@ -205,7 +221,7 @@ In this case, if the `branch: HEAD` argument is used, although it would always p
 In the following sample, we configure that whenever a new Release is created in the GitHub repo, update the documentation to the `retype` branch. If GitHub Pages has been configured to host from the `retype` branch, within a few moments the live website will be updated.
 
 ```yaml
-name: Publish Retype powered documentation on a new release
+name: Publish Retype powered website on a new release
 on:
   release:
     types: [ published ]
@@ -230,10 +246,11 @@ jobs:
           update-branch: true
 ```
 
-Rules will be:
+#### Rules: 
+
 - **target branch:** `retype`
-- **root directory in branch:** branch root directory
-- **if branch exists:** make changes directly to the branch
-- **pull request policy:** never create a pull request and will push branch with modifications directly to GitHub
+- **root directory in branch:** Branch root directory
+- **if branch exists:** Make changes directly to the branch
+- **pull request policy:** Never create a pull request and will push branch with modifications directly to GitHub
 
 See [Managing Releases in a Repository](https://docs.github.com/en/github/administering-a-repository/managing-releases-in-a-repository) for additional details.
