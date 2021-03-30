@@ -161,10 +161,10 @@ In this example we will push to a `gh-pages` branch and allow the action to use 
 
 #### Rules:
 
-- **target branch:** `gh-pages`
-- **root directory in branch:** Branch root directory
-- **if branch exists:** Fork off `gh-pages` to a branch called `gh-pages-<github.run_id>-<github.run_number>`,
-- **pull request policy:** if it forked off the target branch, then make a pull request from `gh-pages-<github.run_id>-<github.run_number>` into `gh-pages`
+- **Target branch:** `gh-pages`
+- **Root directory in branch:** Branch root directory
+- **If branch exists:** Fork off `gh-pages` to a branch called `gh-pages-<github.run_id>-<github.run_number>`,
+- **Pull request policy:** if it forked off the target branch, then make a pull request from `gh-pages-<github.run_id>-<github.run_number>` into `gh-pages`
 
 Regarding pull requests, the first time the action runs will probably be the only time a new `gh-pages` branch will be pushed. Starting from the second time and onwards, the branch already exist and a pull request would be created by the action.
 
@@ -183,10 +183,10 @@ This example assumes GitHub Pages was configured to serve pages from the `docs` 
 
 #### Rules:
 
-- **target branch:** `main`
-- **root directory in branch:** Branch root directory
-- **if branch exists:** Fork off `main` to a branch called `main-<github.run_id>-<github.run_number>`,
-- **pull request policy:** Given the `main` branch always exist, it will always make a pull request from `main--<github.run_id>-<github.run_number>` into `main` when triggered
+- **Target branch:** `main`
+- **Root directory in branch:** Branch root directory
+- **If branch exists:** Fork off `main` to a branch called `main-<github.run_id>-<github.run_number>`,
+- **Pull request policy:** Given the `main` branch always exist, it will always make a pull request from `main--<github.run_id>-<github.run_number>` into `main` when triggered
 
 In this context, one would probably prefer that the action to be triggered on pushes/merges to the `main` branch only, thus the action file would rather be configured like the following:
 
@@ -248,9 +248,9 @@ jobs:
 
 #### Rules: 
 
-- **target branch:** `retype`
-- **root directory in branch:** Branch root directory
-- **if branch exists:** Make changes directly to the branch
-- **pull request policy:** Never create a pull request and will push branch with modifications directly to GitHub
+- **Target branch:** `retype`
+- **Root directory in branch:** Branch root directory
+- **If branch exists:** Make changes directly to the branch
+- **Pull request policy:** Never create a pull request and will push branch with modifications directly to GitHub
 
 See [Managing Releases in a Repository](https://docs.github.com/en/github/administering-a-repository/managing-releases-in-a-repository) for additional details.
