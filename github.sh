@@ -14,11 +14,11 @@ source "${GITHUB_ACTION_PATH}"/functions.inc.sh || {
   exit 1
 }
 
-if [ -z "${RETYPE_OUTPUT_ROOT}" ]; then
+if [ -z "${RETYPE_OUTPUT_PATH}" ]; then
   fail "Retype's output root is not defined. Have you built it using Retype Build Action?"
 fi
 
-bldroot="${RETYPE_OUTPUT_ROOT}"
+bldroot="${RETYPE_OUTPUT_PATH}"
 outdir="${bldroot}"
 
 if [ -z "${INPUT_BRANCH}" ]; then
@@ -128,7 +128,7 @@ if [ ! -d "${outdir}" ]; then
   fail "Unable to locate retype built path: ${outdir}"
 fi
 
-echo "Retype built documentation path: ${RETYPE_OUTPUT_ROOT}
+echo "Retype built documentation path: ${RETYPE_OUTPUT_PATH}
 Target branch: ${targetbranch}
 Target directory: ${targetdir}/"
 
