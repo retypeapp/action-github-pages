@@ -15,7 +15,7 @@ source "${GITHUB_ACTION_PATH}"/functions.inc.sh || {
 }
 
 if [ -z "${RETYPE_OUTPUT_PATH}" ]; then
-  fail "Retype's output root is not defined. Have you built it using Retype Build Action?"
+  fail "Retype's output path is not defined. Have you built it using Retype Build Action?"
 fi
 
 bldroot="${RETYPE_OUTPUT_PATH}"
