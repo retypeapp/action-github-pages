@@ -3,6 +3,7 @@
 _ifs="${IFS}"
 orgwd="$(pwd)"
 configjs_path="resources/js/config.js"
+configjs_varname="__DOCS_CONFIG__"
 
 if [ ! -e "${GITHUB_ACTION_PATH}/functions.inc.sh" ]; then
   echo "::error file=${BASH_SOURCE},line=${LINENO}::Unable to locate functions.inc.sh file."
@@ -57,29 +58,32 @@ function get_config_id() {
   local id
 
   if [ -e "${configjs_path}" ]; then
-    id="$(sed -E "s/.*\"id\":\"([^\"]{35})\".*/\1/" "${configjs_path}" 2>&1)" || return 1
+    id="$(cat << EOF | node 2>&1
+$(cat "${configjs_path}")
+console.log(${configjs_varname}.id);
+EOF
+)" || return 1
 
-    if [ ${#id} -eq 35 ]; then
-      echo "${id}"
-    elif [ ! -z "${id}" ]; then
-      return 1
-    fi
+   echo "${id}"
   fi
 }
 
 function replace_config_id() {
-  local new_id="${1}" re_id
+  local new_id="${1}" escaped_nid
   local current_id
 
   if [ ! -z "${new_id}" -a -e "${configjs_path}" ]; then
     current_id="$(get_config_id)"
 
     if [ "${current_id}" != "${new_id}" ]; then
-      re_id="${new_id//\\/\\\\}"
-      re_id="${re_id//\//\\/}"
-      re_id="${re_id//\&/\\\&}"
+      escaped_nid="${new_id//\"/\\\"}"
 
-      inplace_sed "s/(\"id\":\")[^\"]{35}(\")/\1${re_id}\2/g" "${configjs_path}" || return 1
+      echo "$(cut -f1 -d\{ "${configjs_path}")$(cat << EOF | node --require=fs 2>&1
+$(cat "${configjs_path}")
+${configjs_varname}.id = "${escaped_nid}";
+console.log(JSON.stringify(${configjs_varname}) + ";");
+EOF
+      )" > "${configjs_path}" || return 1
       echo "${current_id}"
     fi
 
