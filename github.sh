@@ -155,6 +155,13 @@ if [ "${branchname}" == "HEAD" ]; then
 
   if [ -d "./${targetdir}" ]; then
     cd "./${targetdir}"
+
+    config_id="$(get_config_id)" || fail_nl "unexpected error trying to get config ID from '${configjs_path}'."
+    if [ ! -z "${config_id}" ]; then
+      echo -n "found config.js's ID, "
+    fi
+
+    wipe_wd
   elif [ -e "./${targetdir}" ]; then
     fail_nl "target path exists but is not a directory: ${targetdir}"
   else
@@ -162,12 +169,6 @@ if [ "${branchname}" == "HEAD" ]; then
     cd "./${targetdir}" || fail_nl "unable to change to target dir: ${targetdir}"
   fi
 
-  config_id="$(get_config_id)" || fail_nl "unexpected error trying to get config ID from '${configjs_path}'."
-  if [ ! -z "${config_id}" ]; then
-    echo -n "found config.js's ID, "
-  fi
-
-  wipe_wd
   echo "done."
 elif git branch --list --remotes --format="%(refname)" | egrep -q "^refs/remotes/origin/${branchname}\$"; then
   echo "Branch '${branchname}' already exists."
@@ -202,6 +203,7 @@ elif git branch --list --remotes --format="%(refname)" | egrep -q "^refs/remotes
 
   echo -n "Cleaning up "
 
+  existing_dir=true
   if [ ! -z "${INPUT_DIRECTORY}" ]; then
     echo -n "target directory: "
     if [ -d "./${targetdir}" ]; then
@@ -211,17 +213,21 @@ elif git branch --list --remotes --format="%(refname)" | egrep -q "^refs/remotes
     else
       mkdir -p "./${targetdir}" || fail_nl "unable to create directory: ${targetdir}"
       cd "./${targetdir}" || fail_nl "unable to change to target dir: ${targetdir}"
+      existing_dir=false
     fi
   else
     echo -n "branch: "
   fi
 
-  config_id="$(get_config_id)" || fail_nl "unexpected error trying to get config ID from '${configjs_path}'."
-  if [ ! -z "${config_id}" ]; then
-    echo -n "found config.js's ID, "
+  if ${existing_dir}; then
+    config_id="$(get_config_id)" || fail_nl "unexpected error trying to get config ID from '${configjs_path}'."
+    if [ ! -z "${config_id}" ]; then
+      echo -n "found config.js's ID, "
+    fi
+
+    wipe_wd
   fi
 
-  wipe_wd
   echo "done."
 else
   echo -n "Creating new, orphan, '${branchname}' branch: "
