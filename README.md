@@ -46,9 +46,9 @@ jobs:
         with:
           dotnet-version: 6.0.x
 
-      - uses: retypeapp/action-build@v2
+      - uses: retypeapp/action-build@latest
 
-      - uses: retypeapp/action-github-pages@v2
+      - uses: retypeapp/action-github-pages@latest
         with:
           branch: retype
           update-branch: true
@@ -129,9 +129,9 @@ jobs:
         with:
           dotnet-version: 6.0.x
 
-      - uses: retypeapp/action-build@v2
+      - uses: retypeapp/action-build@latest
 
-      - uses: retypeapp/action-github-pages@v2
+      - uses: retypeapp/action-github-pages@latest
         with:
           branch: retype
           update-branch: true
@@ -142,7 +142,7 @@ The `retypeapp/action-build` is a required step before running the `retypeapp/ac
 ### Most common setup
 
 ```yaml
-- uses: retypeapp/action-github-pages@v2
+- uses: retypeapp/action-github-pages@latest
   with:
     branch: retype
     update-branch: true
@@ -153,7 +153,7 @@ The `retypeapp/action-build` is a required step before running the `retypeapp/ac
 In this example we will push to a `gh-pages` branch and allow the action to use its own access token to create the pull request whenever the branch exists.
 
 ```yaml
-- uses: retypeapp/action-github-pages@v2
+- uses: retypeapp/action-github-pages@latest
   with:
     branch: gh-pages
     github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -175,7 +175,7 @@ GitHub Pages is not automatically configured by the action pushing to the `gh-pa
 This example assumes GitHub Pages was configured to serve pages from the `docs` folder from within the root of the `main`.
 
 ```yaml
-- uses: retypeapp/action-github-pages@v2
+- uses: retypeapp/action-github-pages@latest
   with:
     branch: main
     directory: docs
@@ -206,9 +206,9 @@ jobs:
         with:
           dotnet-version: 6.0.x
 
-      - uses: retypeapp/action-build@v2
+      - uses: retypeapp/action-build@latest
 
-      - uses: retypeapp/action-github-pages@v2
+      - uses: retypeapp/action-github-pages@latest
         with:
           branch: main
           directory: docs
@@ -238,9 +238,9 @@ jobs:
         with:
           dotnet-version: 6.0.x
 
-      - uses: retypeapp/action-build@v2
+      - uses: retypeapp/action-build@latest
 
-      - uses: retypeapp/action-github-pages@v2
+      - uses: retypeapp/action-github-pages@latest
         with:
           branch: retype
           update-branch: true
