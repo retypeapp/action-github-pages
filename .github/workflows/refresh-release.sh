@@ -173,7 +173,7 @@ for tag in "${taglist[@]}" "v${latest}"; do
   outdated_tags+=(":${tag}")
   echo "- ${tag}: outdated"
  else
-  echo "- ${tag}: updated"
+  echo "- ${tag}: already up-to-date"
  fi
 done
 
