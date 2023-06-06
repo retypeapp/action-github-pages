@@ -26,7 +26,7 @@ Please see [Getting Started with GitHub Pages](https://docs.github.com/en/github
 The following `retype.yaml` file demonstrates a typical scenario where the action will trigger Retype to build when changes are pushed to the repo. The fresh Retype powered website is then pushed to a `retype` branch which has been setup in the repo settings to host with GitHub Pages.
 
 ```yaml
-name: Publish Retype powered website to GitHub
+name: Publish Retype powered website to GitHub Pages
 on:
   workflow_dispatch:
   push:
@@ -35,7 +35,7 @@ on:
 
 jobs:
   publish:
-    name: Publish to the retype branch
+    name: Publish to retype branch
 
     runs-on: ubuntu-latest
 
@@ -45,15 +45,10 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - uses: actions/setup-dotnet@v1
-        with:
-          dotnet-version: 6.0.x
-
       - uses: retypeapp/action-build@latest
 
       - uses: retypeapp/action-github-pages@latest
         with:
-          branch: retype
           update-branch: true
 ```
 
@@ -72,9 +67,9 @@ Specifies the target branch where the Retype output will be merged.
   - **The `update-branch` input is `true`:** The action will wipe clean the branch (or directory), then copy over the Retype output, commit, and then push to the target branch.
 - **The argument is `HEAD` keyword:** `update-branch` is implied `true` and Retype output files will be committed to the current branch. In this scenario, the action will ONLY run if a `directory` has been configured, as it would otherwise result in the replacement of all branch contents with the Retype output.
 
-When wiping a branch or directory, if there is a `CNAME` file in the target directory root, the existing `CNAME` file will be preserved. 
+When wiping a branch or directory, if there is a `CNAME` file in the target directory root, the existing `CNAME` file will be preserved.
 
-If the [`cname`](https://retype.com/configuration/project/) property is configured within your projects `retype.json` file, the `CNAME` file from the Retype build output will be used. 
+If the [`cname`](https://retype.com/configuration/project/) property is configured within your projects `retype.json` file, the `CNAME` file from the Retype build output will be used.
 
 See [Managing a custom domain for your GitHub Pages site](https://docs.github.com/en/github/working-with-github-pages/managing-a-custom-domain-for-your-github-pages-site) for additional details regarding `CNAME` files and configuring a custom domain or sub-domain for web hosting.
 
@@ -114,7 +109,7 @@ The action will never use the access token if (1) the branch does not exist, (2)
 The following `retype.yaml` workflow file will serve as our starting template for most of the samples below.
 
 ```yaml
-name: GitHub Action for Retype
+name: Publish Retype powered website to GitHub Pages
 on:
   workflow_dispatch:
   push:
@@ -123,6 +118,8 @@ on:
 
 jobs:
   publish:
+    name: Publish to retype branch
+
     runs-on: ubuntu-latest
 
     permissions:
@@ -131,15 +128,10 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - uses: actions/setup-dotnet@v1
-        with:
-          dotnet-version: 6.0.x
-
       - uses: retypeapp/action-build@latest
 
       - uses: retypeapp/action-github-pages@latest
         with:
-          branch: retype
           update-branch: true
 ```
 
@@ -210,10 +202,6 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - uses: actions/setup-dotnet@v1
-        with:
-          dotnet-version: 6.0.x
-
       - uses: retypeapp/action-build@latest
 
       - uses: retypeapp/action-github-pages@latest
@@ -244,10 +232,6 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - uses: actions/setup-dotnet@v1
-        with:
-          dotnet-version: 6.0.x
-
       - uses: retypeapp/action-build@latest
 
       - uses: retypeapp/action-github-pages@latest
@@ -256,7 +240,7 @@ jobs:
           update-branch: true
 ```
 
-#### Rules: 
+#### Rules:
 
 - **Target branch:** `retype`
 - **Root directory in branch:** Branch root directory
