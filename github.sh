@@ -22,6 +22,9 @@ fi
 bldroot="${RETYPE_OUTPUT_PATH}"
 outdir="${bldroot}"
 
+# Get the name of the remote.
+remote=$(git remote)
+
 if [ -z "${INPUT_BRANCH}" ]; then
   targetbranch="retype"
 else
@@ -170,7 +173,7 @@ if [ "${branchname}" == "HEAD" ]; then
   fi
 
   echo "done."
-elif git branch --list --remotes --format="%(refname)" | egrep -q "^refs/remotes/origin/${branchname}\$"; then
+elif git branch --list --remotes --format="%(refname)" | egrep -q "^refs/remotes/${remote}/${branchname}\$"; then
   echo "Branch '${branchname}' already exists."
 
   if [ "${INPUT_UPDATE_BRANCH}" == "true" ]; then
@@ -185,17 +188,17 @@ elif git branch --list --remotes --format="%(refname)" | egrep -q "^refs/remotes
   if git show-ref --verify --quiet refs/heads/${branchname}; then
     echo "Branch '${branchname}' already exists. Attempt to checkout."
     git checkout --quiet "${branchname}" || fail_nl "unable to checkout the '${branchname}' branch."
-    git pull origin "${branchname}" || fail_nl "unable to update the '${branchname}' branch."
+    git pull ${remote} "${branchname}" || fail_nl "unable to update the '${branchname}' branch."
   else
     echo "Branch '${branchname}' does not exist. Create and checkout."
-    git checkout --quiet -b "${branchname}" --track origin/"${branchname}" || fail_nl "unable to checkout the '${branchname}' branch."
+    git checkout --quiet -b "${branchname}" --track ${remote}/"${branchname}" || fail_nl "unable to checkout the '${branchname}' branch."
   fi
 
   if ! ${update_branch}; then
     branchname="${targetbranch}-${GITHUB_RUN_ID}_${GITHUB_RUN_NUMBER}"
 
     uniquer=0
-    while git branch --list --remotes --format="%(refname)" | egrep -q "^refs/remotes/origin/${branchname}\$"; do
+    while git branch --list --remotes --format="%(refname)" | egrep -q "^refs/remotes/${remote}/${branchname}\$"; do
       branchname="${targetbranch}-${GITHUB_RUN_ID}_${GITHUB_RUN_NUMBER}_${uniquer}"
       uniquer=$(( 10#${uniquer} + 1 ))
       if [ ${uniquer} -gt 100 ]; then
@@ -315,8 +318,8 @@ result="$("${cmdln[@]}" 2>&1)" || \
 echo "done."
 
 echo -n "Pushing '${branchname}' branch back to GitHub: "
-result="$(git push --quiet origin HEAD 2>&1)" || \
-  fail_cmd true "unable to push the '${branchname}' branch back to GitHub" "git push origin HEAD" "${result}"
+result="$(git push --quiet ${remote} HEAD 2>&1)" || \
+  fail_cmd true "unable to push the '${branchname}' branch back to GitHub" "git push ${remote} HEAD" "${result}"
 echo "done."
 
 if [ ! -z "${INPUT_GITHUB_TOKEN}" -a "${needpr}" == "true" ]; then
