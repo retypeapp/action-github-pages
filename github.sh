@@ -182,9 +182,14 @@ elif git branch --list --remotes --format="%(refname)" | egrep -q "^refs/remotes
     update_branch=false
   fi
 
-  # explicitly using -b <branch> and --track origin/<branch> ensures no
-  # ambiguity when a local path matches the branch name.
-  git checkout --quiet -b "${branchname}" --track origin/"${branchname}" || fail_nl "unable to checkout the '${branchname}' branch."
+  if git show-ref --verify --quiet refs/heads/${branchname}; then
+    echo "Branch '${branchname}' already exists. Attempt to checkout."
+    git checkout --quiet "${branchname}" || fail_nl "unable to checkout the '${branchname}' branch."
+    git pull origin "${branchname}" || fail_nl "unable to update the '${branchname}' branch."
+  else
+    echo "Branch '${branchname}' does not exist. Create and checkout."
+    git checkout --quiet -b "${branchname}" --track origin/"${branchname}" || fail_nl "unable to checkout the '${branchname}' branch."
+  fi
 
   if ! ${update_branch}; then
     branchname="${targetbranch}-${GITHUB_RUN_ID}_${GITHUB_RUN_NUMBER}"
