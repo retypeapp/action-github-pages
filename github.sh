@@ -182,9 +182,9 @@ elif git branch --list --remotes --format="%(refname)" | egrep -q "^refs/remotes
     update_branch=false
   fi
 
-  # explicitly using -b <branch> and --track origin/<branch> ensures no
+  # explicitly using -B <branch> and --track origin/<branch> ensures no
   # ambiguity when a local path matches the branch name.
-  git checkout --quiet -b "${branchname}" --track origin/"${branchname}" || fail_nl "unable to checkout the '${branchname}' branch."
+  git checkout --quiet -B "${branchname}" --track origin/"${branchname}" || fail_nl "unable to checkout the '${branchname}' branch."
 
   if ! ${update_branch}; then
     branchname="${targetbranch}-${GITHUB_RUN_ID}_${GITHUB_RUN_NUMBER}"
@@ -199,6 +199,7 @@ elif git branch --list --remotes --format="%(refname)" | egrep -q "^refs/remotes
     done
 
     echo -n "${branchname}, "
+    # this should _always_ be a new branch off the current one, thus -b.
     git checkout --quiet -b "${branchname}" || fail_nl "unable to switch to new branch '${branchname}'."
   fi
   echo "done."
