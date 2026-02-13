@@ -2,7 +2,7 @@
 
 A GitHub Action to push a website built by [Retype](https://retype.com/) in a previous [`action-build`](https://github.com/retypeapp/action-build) step back to the GitHub repo where it can then be hosted by [GitHub Pages](https://docs.github.com/en/github/working-with-github-pages/getting-started-with-github-pages).
 
-This action includes options to push to a `branch`, or a `directory`, or automatically create a pull request which can then be reviewed and merged.
+This action includes options to publish by pushing to a `branch` or a `directory`, automatically create a pull request, or deploy directly to GitHub Pages when your repo is configured with Pages **Source: GitHub Actions**.
 
 ## Introduction
 
@@ -10,20 +10,25 @@ This action will commit and push back a Retype website to a GitHub repo. The web
 
 The following functionality is configurable by this action:
 
-1. Target a `branch`, or
-2. Target a `directory` in the repo
-3. Configure whether a new branch should be created if it already exists (`update-branch`)
-4. Configure a GitHub API access token to allow the action to make a Pull Request (`github-token`)
+1. Choose where to publish (`publish-to: branch` or `publish-to: pages`)
+2. Target a `branch` (branch mode), or
+3. Target a `directory` in the repo (branch mode)
+4. Configure whether a new branch should be created if it already exists (`update-branch`, branch mode)
+5. Configure a GitHub API access token to allow the action to make a Pull Request (`github-token`, branch mode)
 
 ## Prerequisites
 
 This action requires the output of the [retypeapp/action-build](https://github.com/retypeapp/action-build) in a previous step of the workflow.
 
+If you are using the new GitHub Pages publishing model (Pages **Source: GitHub Actions**), you must enable it in your repo first:
+
+- **Settings → Pages → Build and deployment → Source: GitHub Actions**
+
 Please see [Getting Started with GitHub Pages](https://docs.github.com/en/github/working-with-github-pages/getting-started-with-github-pages) for details on how to configure GitHub Pages.
 
 ## Usage
 
-The following `retype.yaml` file demonstrates a typical scenario where the action will trigger Retype to build when changes are pushed to the repo. The fresh Retype powered website is then pushed to a `retype` branch which has been setup in the repo settings to host with GitHub Pages.
+The following GitHub Actions workflow demonstrates a typical scenario where the action will trigger Retype to build when changes are pushed to the repo. The fresh Retype powered website is then pushed to a `retype` branch which has been set up in the repo settings to host with GitHub Pages.
 
 ```yaml
 name: Publish Retype powered website to GitHub Pages
@@ -52,7 +57,65 @@ jobs:
           update-branch: true
 ```
 
+### Publish using GitHub Pages Source: GitHub Actions
+
+If your repository is configured with **Pages Source: GitHub Actions**, you can deploy without pushing generated files to a branch.
+
+Key differences vs branch publishing:
+
+- Your workflow must grant `pages: write` and `id-token: write` permissions.
+- This action will upload a Pages artifact and then deploy it using the official GitHub Pages actions.
+
+```yaml
+name: Publish Retype powered website to GitHub Pages (GitHub Actions)
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.pages.outputs.page_url }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: retypeapp/action-build@latest
+
+      - id: pages
+        uses: retypeapp/action-github-pages@latest
+        with:
+          publish-to: pages
+```
+
+## Outputs
+
+### `page_url`
+
+The deployed GitHub Pages URL. Only set when `publish-to: pages` and `pages-deploy` is not `false`.
+
+### `artifact_id`
+
+The uploaded Pages artifact ID. Only set when `publish-to: pages`.
+
 ## Inputs
+
+### `publish-to`
+
+Controls where the Retype output is published.
+
+- **Default:** `branch`
+- **Accepts:** `branch` or `pages`
+
+When set to `pages`, the branch-related inputs (`branch`, `directory`, `update-branch`, `github-token`) are ignored.
 
 ### `branch`
 
@@ -104,9 +167,39 @@ Specifies a GitHub Access Token that enables the action to make a pull request w
 
 The action will never use the access token if (1) the branch does not exist, (2) `update-branch` is configured, or (3) if `branch: HEAD` is specified.
 
+### `pages-path`
+
+Only used when `publish-to: pages`.
+
+- **Default:** `${RETYPE_OUTPUT_PATH}` (set by `retypeapp/action-build`)
+- **Accepts:** a string path
+
+### `pages-artifact-name`
+
+Only used when `publish-to: pages`.
+
+- **Default:** `github-pages`
+- **Accepts:** a string
+
+### `pages-retention-days`
+
+Only used when `publish-to: pages`.
+
+- **Default:** `1`
+- **Accepts:** a number (days)
+
+### `pages-deploy`
+
+Only used when `publish-to: pages`.
+
+- **Default:** `true`
+- **Accepts:** `true` or `false`
+
+If set to `false`, the action will only upload the Pages artifact. You can then deploy it in a separate job using `actions/deploy-pages`.
+
 ## Examples
 
-The following `retype.yaml` workflow file will serve as our starting template for most of the samples below.
+The following GitHub Actions workflow will serve as our starting template for most of the samples below.
 
 ```yaml
 name: Publish Retype powered website to GitHub Pages
