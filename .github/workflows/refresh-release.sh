@@ -4,6 +4,7 @@
 #       respective major tag (e.g. v2) was pushed.
 
 github_token=""
+version_override=""
 repo_desc="\`github-pages\` Publish Action"
 
 function fail() {
@@ -14,6 +15,7 @@ function fail() {
 for param in "${@}"; do
  case "${param}" in
   '--github-token='*) github_token="${param#*=}";;
+  '--version='*) version_override="${param#*=}";;
   *) fail "Unknown argument '${param}'.";;
  esac
 done
@@ -22,25 +24,30 @@ if [ ${#github_token} -lt 10 ]; then
  fail "GitHub token (--github-token) is invalid."
 fi
 
-echo "- Querying latest Retype release from NuGet.org..."
-result="$(curl -s https://api.nuget.org/v3/registration5-gz-semver2/retypeapp/index.json | gunzip)" || \
- fail "Unable to fetch retype package page from nuget.org website as a gzipped response."
+if [ -n "${version_override}" ]; then
+ echo "- Using version provided by orchestration: ${version_override}"
+ latest="${version_override}"
+else
+ echo "- Querying latest Retype release from NuGet.org..."
+ result="$(curl -s https://api.nuget.org/v3/registration5-gz-semver2/retypeapp/index.json | gunzip)" || \
+  fail "Unable to fetch retype package page from nuget.org website as a gzipped response."
 
-# Wrap a node script to parse the response JSON string.
-nodescp="const stdin = process.stdin;
-let data='';
-stdin.setEncoding('utf8');
-stdin.on('data', function (chunk) {
- data += chunk;
-});
-stdin.on('end', function() {
- var objdata = JSON.parse(data);
- var pkmeta=objdata.items[0];
- console.log(pkmeta.items[pkmeta.items.length-1].catalogEntry.version);
-});
-stdin.on('error', console.error);"
+ # Wrap a node script to parse the response JSON string.
+ nodescp="const stdin = process.stdin;
+ let data='';
+ stdin.setEncoding('utf8');
+ stdin.on('data', function (chunk) {
+  data += chunk;
+ });
+ stdin.on('end', function() {
+  var objdata = JSON.parse(data);
+  var pkmeta=objdata.items[0];
+  console.log(pkmeta.items[pkmeta.items.length-1].catalogEntry.version);
+ });
+ stdin.on('error', console.error);"
 
-latest="$(echo "${result}" | node -e "${nodescp}")" || fail "Unable parse latest version from NuGet API Json response."
+ latest="$(echo "${result}" | node -e "${nodescp}")" || fail "Unable parse latest version from NuGet API Json response."
+fi
 
 if [ -z "${latest}" ]; then
  fail "Unable to extract latest version number from NuGet website."
