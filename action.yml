@@ -1,8 +1,15 @@
 name: Retype Action for GitHub Pages
 author: Object.NET, Inc.
 description: |-
-  Publishes a Retype website to a branch, directory, or creates a pull request.
+  Publishes a Retype website to a branch/directory (optionally via pull request), or deploys to GitHub Pages using a GitHub Actions workflow.
 inputs:
+  publish-to:
+    description: |-
+      Where to publish the Retype output.
+      - branch (default): Commit/push to a target branch/directory (existing behavior).
+      - pages: Deploy to GitHub Pages when the repo Pages source is set to "GitHub Actions".
+    required: false
+    default: branch
   branch:
     description: |-
       The name of the target branch where the Retype output will be committed. 
@@ -28,13 +35,84 @@ inputs:
       branch will be created. If this option is not set, the action may push a 
       new branch but will not create a pull request. Default is empty.
     required: false
+
+  pages-path:
+    description: |-
+      Only used when publish-to=pages.
+      Path to the directory containing the static assets to deploy.
+      Defaults to the RETYPE_OUTPUT_PATH environment variable set by retypeapp/action-build.
+    required: false
+  pages-artifact-name:
+    description: |-
+      Only used when publish-to=pages.
+      Artifact name to upload for GitHub Pages deployment.
+    required: false
+    default: github-pages
+  pages-retention-days:
+    description: |-
+      Only used when publish-to=pages.
+      How long (in days) to keep the uploaded Pages artifact.
+    required: false
+    default: '1'
+  pages-deploy:
+    description: |-
+      Only used when publish-to=pages.
+      If true (default), the action will deploy to GitHub Pages.
+      If false, the action will only upload the Pages artifact.
+    required: false
+    default: 'true'
+
+outputs:
+  page_url:
+    description: The GitHub Pages URL (only set when publish-to=pages and pages-deploy=true).
+    value: ${{ steps.pages_deploy.outputs.page_url }}
+  artifact_id:
+    description: The uploaded Pages artifact ID (only set when publish-to=pages).
+    value: ${{ steps.pages_upload.outputs.artifact_id }}
 runs:
   using: "composite"
   steps:
-    - run: "${GITHUB_ACTION_PATH}/github.sh"
+    - name: Publish to branch/directory
+      if: ${{ inputs.publish-to != 'pages' }}
+      run: "${GITHUB_ACTION_PATH}/github.sh"
       shell: bash
       env:
         INPUT_BRANCH: ${{ inputs.branch }}
         INPUT_DIRECTORY: ${{ inputs.directory }}
         INPUT_UPDATE_BRANCH: ${{ inputs.update-branch }}
         INPUT_GITHUB_TOKEN: ${{ inputs.github-token }}
+
+    - name: Validate Retype output path
+      if: ${{ inputs.publish-to == 'pages' }}
+      shell: bash
+      env:
+        PAGES_PATH: ${{ inputs.pages-path != '' && inputs.pages-path || env.RETYPE_OUTPUT_PATH }}
+      run: |
+        if [ -z "${PAGES_PATH}" ]; then
+          echo "::error::Retype output path is not defined. Run retypeapp/action-build (or set pages-path)."
+          exit 1
+        fi
+        if [ ! -d "${PAGES_PATH}" ]; then
+          echo "::error::Unable to locate static site directory: ${PAGES_PATH}"
+          exit 1
+        fi
+
+    - name: Configure GitHub Pages
+      if: ${{ inputs.publish-to == 'pages' }}
+      uses: actions/configure-pages@v5
+
+    - name: Upload Pages artifact
+      id: pages_upload
+      if: ${{ inputs.publish-to == 'pages' }}
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: ${{ inputs.pages-path != '' && inputs.pages-path || env.RETYPE_OUTPUT_PATH }}
+        name: ${{ inputs.pages-artifact-name != '' && inputs.pages-artifact-name || 'github-pages' }}
+        retention-days: ${{ inputs.pages-retention-days != '' && inputs.pages-retention-days || 1 }}
+
+    - name: Deploy to GitHub Pages
+      id: pages_deploy
+      if: ${{ inputs.publish-to == 'pages' && inputs.pages-deploy != 'false' }}
+      uses: actions/deploy-pages@v4
+      with:
+        artifact_name: ${{ inputs.pages-artifact-name != '' && inputs.pages-artifact-name || 'github-pages' }}
